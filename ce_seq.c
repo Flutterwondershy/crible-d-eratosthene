@@ -14,7 +14,7 @@ void initialiserTableau(int* tab, unsigned int n)
 
 void crible(int* A, int n)
 {
-	int i, j;
+	unsigned int i, j;
 	for(i = 2; i*i < n; i++)  //i de 2 à sqrt(n)
 		if(A[i])
 			for(j = i*i; j < n; j+=i)
@@ -25,11 +25,11 @@ int main(int argc, char** argv)
 {
 	clock_t t1, t2;
 	float duree;
-	int i;
+	unsigned int i;
 
 	if(argc == 2)
 	{
-		int n = atoi(argv[1]);
+		unsigned int n = atoi(argv[1]);
 		int* A = malloc(sizeof(int) * n);
 		initialiserTableau(A, n);
 
