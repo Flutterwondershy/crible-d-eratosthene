@@ -9,20 +9,18 @@ typedef struct
 	unsigned int i_fin;
 	unsigned int pas;
 	unsigned int flag;
+	pthread_cond_t* cond;
+	pthread_mutex_t* mut;
+	int flag
 	int* A;
 } paramThread;
 
 void worker(paramThread* p)
 {
-	while(p->flag);
-
-	unsigned j;
-	for(j = p->i_debut; j < p->i_fin; j+=p->pas)
-		p->A[j] = 0;
-	
-	pthread_exit(0);
-}
-
+	pthread_mutex_lock(p->mut);
+	while(1){
+	pthread_cond_wait(cond, mt);
+	if(!p->flag){pthread_exit(0);}
 void initialiserTableau(int* tab, unsigned int n)
 {
 	unsigned int i;
@@ -32,6 +30,10 @@ void initialiserTableau(int* tab, unsigned int n)
 	tab[0] = 0;
 	tab[1] = 0;
 }
+}
+}
+
+
 
 void crible(int* A, int n, int nbThread)
 {
@@ -39,11 +41,20 @@ void crible(int* A, int n, int nbThread)
 	unsigned int intervalle;
 
 	pthread_t* threads = malloc(nbThread*sizeof(pthread_t));
+	pthread_mutex_t* mutex = malloc(nbThread*sizeof(int));
+	pthread_cond_t* condition;
+	pthread_cond_init (&condition[i], NULL);
+
 	paramThread* params = malloc(nbThread*sizeof(paramThread));
 
 	for(i = 0; i < nbThread; i++)
 	{
-		params[i].flag = 1;
+
+	 	pthread_mutex_init(&mutex[i], NULL);
+		params[i].flag=1;
+		params[i].mut=&mutex[i];
+		params[i].cond=condition;
+
 		pthread_create(&threads[i], NULL, (void*) worker, &params[i]);
 	}
 
@@ -58,13 +69,24 @@ void crible(int* A, int n, int nbThread)
 				params[i].i_fin = i*i+(j+1)*intervalle;
 				params[i].pas = i;
 				params[i].A = A;
-				
-				params[i].flag = 0;
+				if (i!=2)
+				pthread_mutex_unlock(mutex[j]);
+
+			}
+			pthread_cond_broadcast(condition) ;
+			for(j = 0; j < nbThread; j++)
+			{
+				pthread_mutex_lock(mutex[j]);
+
 			}
 
-			for(j = 0; j < nbThread; j++)
-				pthread_join(threads[i], NULL);
 		}
+		for(j = 0; j < nbThread; j++)
+		{
+			params[i].flag=0;
+			
+
+
 
 	free(threads);
 	free(params);
@@ -85,9 +107,9 @@ int main(int argc, char** argv)
 		initialiserTableau(A, n);
 
 		t1 = clock();
-		
+
 		crible(A, n, nbThread);
-		
+
 		t2 = clock();
 		duree = (float) (t2-t1) / CLOCKS_PER_SEC;
 		printf("Durée de l'algorithme: %f\n", duree);
@@ -98,6 +120,6 @@ int main(int argc, char** argv)
 		free(A);
 	}
 	else fprintf(stderr, "Nombre de paramètres incorrect");
-	
+
 	return 0;
 }
